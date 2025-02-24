@@ -1,4 +1,4 @@
-SDE Assignment Backend - Comprehensive Documentation
+SDE Assignment Backend - Comprehensive Documentation -
 This document provides full details about the SDE Assignment Backend project, including API specifications, asynchronous worker functions, repository structure with code snippets, and a public Postman collection link for testing the APIs.
 
 Table of Contents
