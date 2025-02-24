@@ -1,92 +1,62 @@
-SDE Assignment Backend - Comprehensive Documentation -
-This document provides full details about the SDE Assignment Backend project, including API specifications, asynchronous worker functions, repository structure with code snippets, and a public Postman collection link for testing the APIs.
+# SDE Assignment Backend - README
 
-Table of Contents
-Overview
-API Documentation
-Upload API
-Status API
-Webhook API
-Asynchronous Worker Documentation
-Repository Structure and Code
-Environment Setup (.env)
-.gitignore
-Postman Collection
-Running the Application
-License
+## Overview
+This project implements a backend system using **Node.js, MongoDB, and ES6 modules** for processing product images uploaded via a CSV file. It provides:
 
-Overview
-This project implements a backend system using Node.js, MongoDB, and ES6 modules for processing product images uploaded via a CSV file. It provides:
-CSV File Upload: API for uploading a CSV file containing product details and image URLs.
-Asynchronous Image Processing: Downloads and compresses images (reducing quality by 50%) using the Sharp library.
-Status Tracking: API to check processing status and retrieve processed image URLs.
-Webhook Endpoint: Receives callbacks for updating processed data.
+- **CSV File Upload:** API for uploading a CSV file containing product details and image URLs.
+- **Asynchronous Image Processing:** Downloads and compresses images (reducing quality by 50%) using the Sharp library.
+- **Status Tracking:** API to check processing status and retrieve processed image URLs.
+- **Webhook Endpoint:** Receives callbacks for updating processed data.
 
-API Documentation
-Base URL
+---
+
+## Table of Contents
+
+1. [API Documentation](#api-documentation)
+   - [Upload API](#upload-api)
+   - [Status API](#status-api)
+   - [Webhook API](#webhook-api)
+2. [Asynchronous Worker](#asynchronous-worker)
+3. [Repository Structure](#repository-structure)
+4. [Setup and Installation](#setup-and-installation)
+5. [Running the Application](#running-the-application)
+6. [Environment Variables](#environment-variables)
+7. [License](#license)
+
+---
+
+## API Documentation
+
+### Base URL
+```
 https://assignmentsde1.onrender.com
+```
 
-Upload API
-Method: POST
-Endpoint: /upload
-Description: Upload a CSV file containing product data and image URLs. The CSV must include the following headers:
-S. No.
-Product Name
-Input Image Urls
-Headers:
- Content-Type: multipart/form-data
-Request Body:
- Upload the CSV file in form-data with the key file.
-Success Response (HTTP 200):
- {
+### Upload API
+- **Method:** `POST`
+- **Endpoint:** `/upload`
+- **Description:** Upload a CSV file containing product data and image URLs. The CSV must include:
+  - `S. No.`
+  - `Product Name`
+  - `Input Image Urls`
+- **Headers:** `Content-Type: multipart/form-data`
+- **Request Body:** Upload the CSV file in form-data with the key `file`.
+- **Response:**
+```json
+{
   "requestId": "unique-uuid-string"
 }
+```
 
-
-Error Response: Returns an error message if the file is missing or if there is a server error.
-
-Status API
-Method: GET
-Endpoint: /status/:requestId
-Description: Retrieve the processing status and product details (including processed image URLs) for the given requestId.
-Path Parameter:
-requestId: The unique ID obtained from the Upload API.
-Success Response (HTTP 200):
- {
+### Status API
+- **Method:** `GET`
+- **Endpoint:** `/status/:requestId`
+- **Description:** Retrieve the processing status and product details (including processed image URLs) for the given `requestId`.
+- **Response:**
+```json
+{
   "requestId": "unique-uuid-string",
   "status": "pending | processing | completed",
-  "products": [
-    {
-      "serialNumber": 1,
-      "productName": "SKU1",
-      "inputImageUrls": [
-       "https://example.com/image1.jpg",
-        "https://example.com/image2.jpg"
-      ],
-      "outputImageUrls": [
-        "processed/1614701234567-123.jpg",
-        "processed/1614701234568-456.jpg"
-      ]
-    }
-  ],
-  "createdAt": "timestamp",
-  "updatedAt": "timestamp"
-}
-
-
-Error Response:
-404 Not Found if the requestId does not exist.
-500 Internal Server Error for server issues.
-
-Webhook API
-Method: POST
-Endpoint: /webhook
-Description: Receives callbacks from the asynchronous image processing service. This endpoint updates the request record with processed image URLs and changes the status to "completed".
-Headers:
-Content-Type: application/json
-Request Body Example:
- {
-  "requestId": "unique-uuid-string",
   "products": [
     {
       "serialNumber": 1,
@@ -100,40 +70,91 @@ Request Body Example:
         "processed/1614701234568-456.jpg"
       ]
     }
-  ],
+  ]
+}
+```
+
+### Webhook API
+- **Method:** `POST`
+- **Endpoint:** `/webhook`
+- **Description:** Receives callbacks from the asynchronous image processing service.
+- **Headers:** `Content-Type: application/json`
+- **Request Body:**
+```json
+{
+  "requestId": "unique-uuid-string",
+  "products": [...],
   "status": "completed"
 }
+```
 
+---
 
-Success Response (HTTP 200):
- {
-  "message": "Webhook processed successfully"
-}
+## Asynchronous Worker
 
+### Image Processing Worker
+- **File:** `workers/imageWorker.js`
+- **Function:** `processImages`
+- **Purpose:**
+  - Downloads images from `inputImageUrls`.
+  - Compresses them using **Sharp** (reducing quality by 50%).
+  - Saves processed images in `processed/` folder.
+- **Workflow:**
+  1. Change request status from `pending` to `processing`.
+  2. Process each `inputImageUrl`.
+  3. Update `outputImageUrls`.
+  4. Change request status to `completed`.
+  5. Optionally notify a webhook.
 
-Error Response:
-400 Bad Request if required fields are missing.
-404 Not Found if the record is not found.
-500 Internal Server Error for server issues.
+---
 
-Asynchronous Worker Documentation
-Asynchronous Image Processing Worker
-File: workers/imageWorker.js
-Function: processImages
-Purpose:
-Image Processing:
-Downloads images from inputImageUrls.
-Compresses them using the Sharp library (reducing quality by 50%).
-Saves processed images locally in the processed/ folder.
-Workflow:
-Status Update: Change request status from pending to processing.
-Process Images:
-Loop through each product and process each inputImageUrl.
-Download and compress images.
-Save processed images locally.
-Finalize Request:
-Update outputImageUrls.
-Change request status to completed.
-Webhook Callback (Optional):
-Notify an external webhook about completion.
+## Repository Structure
+```
+📂 SDE-Backend
+ ┣ 📂 workers
+ ┃ ┗ 📜 imageWorker.js
+ ┣ 📜 server.js
+ ┣ 📜 package.json
+ ┣ 📜 .gitignore
+ ┗ 📜 README.md
+```
+
+---
+
+## Setup and Installation
+
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/yourusername/SDE-Backend.git
+   cd SDE-Backend
+   ```
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+3. Configure environment variables in `.env` file.
+4. Start the application:
+   ```sh
+   npm start
+   ```
+
+---
+
+## Environment Variables
+Create a `.env` file and define:
+```
+MONGO_URI=mongodb+srv://...
+PORT=3000
+```
+
+---
+
+## Running the Application
+To run the backend server:
+```sh
+npm run dev
+```
+
+---
+
 
