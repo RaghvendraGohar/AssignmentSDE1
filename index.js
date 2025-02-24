@@ -3,10 +3,12 @@ import express from 'express';
 import mongoose from 'mongoose';
 import apiRoutes from './routes/apiRoutes.js';
 import dotenv from 'dotenv';
+import path from 'path';
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.use('/processed', express.static(path.join(process.cwd(), 'processed')));
 
 
 app.use(express.json());

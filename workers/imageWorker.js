@@ -32,36 +32,32 @@ export const processImages = async (request) => {
   }
 };
 
+const serverUrl = 'https://assignmentsde1.onrender.com'; // Change this to your actual domain
+
 async function compressAndStoreImage(imageUrl) {
   try {
-    // Download the image using axios
-    const response = await axios({
-      method: 'get',
-      url: imageUrl,
-      responseType: 'arraybuffer'
-    });
+    const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
     const imageBuffer = Buffer.from(response.data, 'binary');
 
-    // Use sharp to compress the image (reduce quality by 50%)
     const processedBuffer = await sharp(imageBuffer)
       .jpeg({ quality: 50 })
       .toBuffer();
 
-    // Ensure the "processed" folder exists
     const processedFolder = 'processed';
     if (!fs.existsSync(processedFolder)) {
       fs.mkdirSync(processedFolder);
     }
-    // Generate a unique filename
+
     const filename = `${Date.now()}-${Math.round(Math.random() * 1000)}.jpg`;
     const filepath = path.join(processedFolder, filename);
 
     fs.writeFileSync(filepath, processedBuffer);
 
-    // Return the local file path as the processed image URL
-    return filepath;
+    // Return a URL based on your hosted server
+    return `${serverUrl}/processed/${filename}`;
   } catch (error) {
     console.error('Error in compressAndStoreImage:', error);
-    return imageUrl; // Fallback: return the original URL if processing fails
+    return imageUrl;
   }
 }
+

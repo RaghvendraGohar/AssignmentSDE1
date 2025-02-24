@@ -13,7 +13,7 @@ const csvParser = (filePath) => {
           serialNumber: Number(data['S. No.']),
           productName: data['Product Name'],
           inputImageUrls: data['Input Image Urls'].split(',').map(url => url.trim()),
-          outputImageUrls: []  // To be filled after processing
+          outputImageUrls: data['Input Image Urls'].split(',').map(url => url.trim().replace(/\.(\w+)$/, '-output.$1')),  
         };
         results.push(product);
       })
